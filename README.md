@@ -35,6 +35,20 @@ g) positive/negative тесты для Filtering resources.
 
 Все тесты должны успешно проходить.
 
+#### Задание 2
+
+Тестирование json sсhema сервиса jsonplaceholder.typicode.com   
+Написать тесты для проверки структуры json (schema) todos https://jsonplaceholder.typicode.com/todos  
+Схемы должны быть оформлены в виде файлов и использоваться тестами.  
+Для теста Listing all resources нужно использовать файл со схемой из теста Getting a resource, указав ссылку на него в схеме.
+
+##### Список тестов:
+
+a) Getting a resource.  
+b) Listing all resources.
+
+Все тесты должны успешно проходить.
+
 #### Установка
 
 Python3 должен быть уже установлен. 

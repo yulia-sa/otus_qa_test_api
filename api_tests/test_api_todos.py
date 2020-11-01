@@ -1,16 +1,25 @@
+import json
 import pytest
+from jsonschema import validate
 
 TODOS_MAX = 200
 TODOS_HALF = TODOS_MAX // 2
 
 
-# Positive/negative tests for Getting a resource.
+def assert_valid_schema(data, schema_file):
+    with open(schema_file) as f:
+        schema = json.load(f)
+    return validate(instance=data, schema=schema)
+
+
+# a) Positive/negative tests for Getting a resource.
 @pytest.mark.parametrize('todo_id', [1, 2, TODOS_HALF, TODOS_MAX - 1, TODOS_MAX])
 def test_get_positive(session, base_url, todo_id):
     res = session.get(url=f'{base_url}/{todo_id}')
 
     assert res.status_code == 200
     assert res.json()['id'] == todo_id
+    assert_valid_schema(res.json(), '../schemas/todo_schema.json')
 
 
 @pytest.mark.parametrize('todo_id', [-1, 0, TODOS_MAX + 1, TODOS_MAX ** 100, 2.5, 'test', '@', 'тест'])
@@ -21,16 +30,20 @@ def test_get_negative(session, base_url, todo_id):
     assert res.json() == {}
 
 
-# Positive tests for Listing all resources.
-def test_get_all_positive(session, base_url):
+# b) Positive tests for Listing all resources.
+@pytest.mark.parametrize('schema', [
+    '../schemas/todos_schema.json',
+    '../schemas/todos_schema_file.json'])
+def test_get_all_positive(session, base_url, schema):
     res = session.get(url=f'{base_url}')
 
     assert res.status_code == 200
     assert res.json()
     assert len(res.json()) == TODOS_MAX
+    assert_valid_schema(res.json(), schema)
 
 
-# Positive tests for Creating a resource.
+# c) Positive tests for Creating a resource.
 def test_post_positive(session, base_url):
     title = "Todo title"
     completed = False
@@ -45,7 +58,7 @@ def test_post_positive(session, base_url):
     assert res_json['completed'] == completed
 
 
-# Positive/negative tests for Updating a resource with PUT.
+# d) Positive/negative tests for Updating a resource with PUT.
 @pytest.mark.parametrize('user_id, todo_id',
                          [(1, 1),
                           (1, 11),
@@ -109,7 +122,7 @@ def test_put_todo_id_negative(session, base_url, user_id, todo_id):
     assert res.status_code == 500
 
 
-# Positive tests for Updating a resource with PATCH
+# e) Positive tests for Updating a resource with PATCH
 @pytest.mark.parametrize('todo_id, title',
                          [(1, 'New title for todo_id=1'),
                           (2, 'New title for todo_id=2'),
@@ -142,7 +155,7 @@ def test_patch_completed_positive(session, base_url, todo_id, completed):
     assert res_json['id'] == todo_id
 
 
-# Positive tests for Deleting a resource
+# f) Positive tests for Deleting a resource
 @pytest.mark.parametrize('todo_id', [1, 2, TODOS_HALF, TODOS_MAX - 1, TODOS_MAX])
 def test_delete_positive(session, base_url, todo_id):
     res = session.get(url=f'{base_url}/{todo_id}')
@@ -151,7 +164,7 @@ def test_delete_positive(session, base_url, todo_id):
     assert res.json()['id'] == todo_id
 
 
-# Positive/negative tests for Filtering resources.
+# g) Positive/negative tests for Filtering resources.
 @pytest.mark.parametrize('user_id', [1, 2, 5, 9, 10])
 def test_filtering_by_user_id_positive(session, base_url, user_id):
     res = session.get(url=f'{base_url}?userId={user_id}')
